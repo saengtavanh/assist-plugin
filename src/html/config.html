@@ -1,0 +1,117 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+<form class="js-submit-settings">
+  <div class="kintoneplugin-input-outer container">
+    <div id="label-show-title">
+      <label for="select_field_column">Date format setting<span class="kintoneplugin-require"></span></label>
+    </div>
+    <div>
+      <table class="kintoneplugin-table" id="kintoneplugin-setting-space">
+        <thead>
+          <tr>
+            <th class="kintoneplugin-table-th-blankspace"></th>
+            <th class="kintoneplugin-table-th" id="kintoneplugin-table-th-table"></th>
+            <th class="kintoneplugin-table-th-blankspace"></th>
+          </tr>
+        </thead>
+        <tbody id="kintoneplugin-setting-tspace">
+          <tr class="table-space" hidden>
+            <td>
+              <div class="drag-icon">
+                <i class="fa-solid fa-bars"></i>
+              </div>
+            </td>
+            <td id="td-table-space-prompt-template-button">
+              <div class="row">
+
+                <div class="kintoneplugin-table-td-control" id="">
+                  <label for="select_field_column" style="font-size: 14px;">Type<span
+                      class="kintoneplugin-require">*</span></label>
+                  <div class="kintoneplugin-select-outer">
+                    <div class="kintoneplugin-select">
+                      <select id="type">
+                        <option value="-----">-----</option>
+                        <option value="DATE">DATE</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="kintoneplugin-table-td-control" id="">
+                  <label for="select_field_column" style="font-size: 14px;">Space<span
+                      class="kintoneplugin-require"></span></label>
+                  <div class="kintoneplugin-select-outer">
+                    <div class="kintoneplugin-select">
+                      <select id="space">
+                        <option value="-----">-----</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="kintoneplugin-table-td-control" id="">
+                  <label for="select_field_column" style="font-size: 14px;">Storage field<span
+                      class="kintoneplugin-require">*</span></label>
+                  <div class="kintoneplugin-select-outer">
+                    <div class="kintoneplugin-select">
+                      <select id="store_field">
+                        <option value="-----">-----</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="kintoneplugin-table-td-control" id="">
+                  <label for="select_field_column" style="font-size: 14px;">Display format<span
+                      class="kintoneplugin-require"></span></label>
+                  <div class="kintoneplugin-select-outer">
+                    <div class="kintoneplugin-select">
+                      <select id="format">
+                        <option value="-----">-----</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        <option value="YYYY/MM/DD">YYYY/MM/DD</option>
+                        <option value="YYYY.MM.DD">YYYY.MM.DD</option>
+                        <option value="YY/MM/DD">YY/MM/DD</option>
+                        <option value="YY.MM.DD">YY.MM.DD</option>
+                        <option value="eYY.MM.DD">eYY.MM.DD</option>
+                        <option value="e_YY_MM_DD">e YY MM DD</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="kintoneplugin-table-td-control">
+                  <label for="title-field" style="font-size: 14px;">initial value<span
+                      class="kintoneplugin-require"></span></label>
+                  <div class="kintoneplugin-input-outer">
+                    <input type="text" class="kintoneplugin-input-text labelForButton" id="initial_value" />
+                  </div>
+                </div>
+
+              </div>
+
+            </td>
+            <td class="kintoneplugin-table-td-operation operation-column">
+              <br>
+              <div class="button-add-remove-row-table-spaceForPrompt">
+                <button type="button" class="kintoneplugin-button-add-row-image addRow"></button>
+                <button type="button" class="kintoneplugin-button-remove-row-image removeRow"></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <p class="kintoneplugin-row" id="button-action">
+      <button type="button" class="js-save-button kintoneplugin-button-dialog-ok" id="button_save">Save</button>
+      <button type="button" class="js-cancel-button kintoneplugin-button-dialog-cancel cancel"
+        id="cancel">Cancel</button>
+      <button type="button" class="js-save-button kintoneplugin-button-dialog-cancel" id="Import">Import</button>
+      <button type="button" class="js-save-button kintoneplugin-button-dialog-cancel" id="Export">Export</button>
+      <input type="file" id="fileInput" accept=".json" style="display: none;">
+    </p>
+  </div>
+</form>

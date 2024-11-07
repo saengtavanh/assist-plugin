@@ -1,0 +1,44 @@
+{
+  "$schema": "https://raw.githubusercontent.com/kintone/js-sdk/%40kintone/plugin-manifest-validator%4010.2.0/packages/plugin-manifest-validator/manifest-schema.json",
+  "manifest_version": 1,
+  "version": 1,
+  "type": "APP",
+  "desktop": {
+    "js": [
+      "js/jquery-2.2.4.min.js",
+      "js/sweetalert2.all.js",
+      "js/kuc.min.js",
+      "common/RsComAPI.js",
+      "js/desktop.js"
+    ],
+    "css": [
+      "css/51-modern-default.css",
+      "css/desktop.css"
+    ]
+  },
+  "icon": "image/icon.png",
+  "config": {
+    "html": "html/config.html",
+    "js": [
+      "js/jquery-2.2.4.min.js",
+      "js/jquery-ui.js",
+      "js/sweetalert2.all.js",
+      "common/RsComAPI.js",
+      "js/config.js"
+    ],
+    "css": [
+      "css/51-modern-default.css",
+      "css/all.min.css",
+      "css/RsComAPI.css",
+      "css/config.css"
+    ]
+  },
+  "name": {
+    "en": "Assist-plugin",
+    "ja": "Assist-plugin"
+  },
+  "description": {
+    "en": "Assist-plugin",
+    "ja": "Assist-plugin"
+  }
+}
