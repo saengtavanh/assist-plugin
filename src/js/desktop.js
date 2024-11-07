@@ -10,7 +10,7 @@ jQuery.noConflict();
   ]
   if (!CONFIG) return;
   CONFIG = JSON.parse(kintone.plugin.app.getConfig(PLUGIN_ID).config);
-  console.log('CONFIG', CONFIG);
+  // console.log('CONFIG', CONFIG);
 
   function getAdjustedDate(offset) {
     const date = new Date(); // today's date
