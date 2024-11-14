@@ -161,6 +161,7 @@ jQuery.noConflict();
 	async function validation() {
 		let hasError = false;
 		let errorMessage = "";
+		let storeFiledArray = [];
 		//group setting table
 		let formatSettingTable = $('#kintoneplugin-setting-tspace > tr:gt(0)').toArray();
 		for (const [index, element] of formatSettingTable.entries()) {
@@ -190,6 +191,14 @@ jQuery.noConflict();
 				hasError = true;
 			} else {
 				$(storeField).parent().removeClass('validation-error');
+				if (!storeFiledArray.includes(storeField.val().trim())) {
+					$(storeField).parent().removeClass('validation-error');
+					storeFiledArray.push(storeField.val());
+				} else {
+					$(storeField).parent().addClass('validation-error');
+					errorMessage += `<p>Field "${storeField.val()}" already exists.</p>`;
+					hasError = true;
+				}
 			}
 
 			// if (format.val() == "-----") {
@@ -231,6 +240,11 @@ jQuery.noConflict();
 			axis: 'y'
 		});
 
+		$('input#initial_value').on('input', function () {
+			console.log($(this).val());
+			$(this).val($(this).val().replace(/[^0-9-]/g, ''));
+		})
+
 		// button save.
 		$('#button_save').on('click', async function () {
 			let createConfig = await getData();
@@ -250,8 +264,8 @@ jQuery.noConflict();
 				confirmButtonColor: "#3498db",
 				showCancelButton: true,
 				cancelButtonColor: "#f7f9fa",
-				confirmButtonText: "Yes",
-				cancelButtonText: "No",
+				confirmButtonText: "OK",
+				cancelButtonText: "Cancel",
 				customClass: {
 					confirmButton: 'custom-confirm-button',
 					cancelButton: 'custom-cancel-button'
@@ -294,7 +308,7 @@ jQuery.noConflict();
 				confirmButtonColor: "#3498db",
 				showCancelButton: true,
 				cancelButtonColor: "#f7f9fa",
-				confirmButtonText: "Yes",
+				confirmButtonText: "OK",
 				cancelButtonText: "Cancel",
 			}).then(async (result) => {
 				if (result.isConfirmed) {
@@ -382,7 +396,10 @@ jQuery.noConflict();
 					{
 						type: "string",
 						space: "string",
-						storeField: "string",
+						storeField: {
+							code: "string",
+							label: "string",
+						},
 						format: "string",
 						initialValue: "string"
 					}

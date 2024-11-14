@@ -30,8 +30,9 @@ jQuery.noConflict();
     for (const item of CONFIG.formatSetting) {
       if (item.space == "-----") continue;
       let spaceElement = kintone.app.record.getSpaceElement(item.space);
-      // kintone.app.record.setFieldShown(item.storeField.code, false);
-      let defaultDate = item.initialValue == "" ? getAdjustedDate(0) : item.initialValue == "1" ? getAdjustedDate(1) : item.initialValue == "-1" ? getAdjustedDate(-1) : getAdjustedDate(0);
+      kintone.app.record.setFieldShown(item.storeField.code, false);
+      let defaultDate = item.initialValue == "" ? "" : item.initialValue == "1" ? getAdjustedDate(1) : item.initialValue == "-1" ? getAdjustedDate(-1) : item.initialValue == "0" ? getAdjustedDate(0) : "";
+      record[item.storeField.code].value = defaultDate;
       const datePicker = new Kuc.DatePicker({
         requiredIcon: true,
         language: "auto",
