@@ -19,7 +19,9 @@ jQuery.noConflict();
     // Format the date to "YYYY-MM-DD"
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0'); // months are 0-indexed
+    console.log('month', month);
     const day = String(date.getDate()).padStart(2, '0');
+    console.log('day', day);
 
     return `${year}-${month}-${day}`;
   }
@@ -30,21 +32,59 @@ jQuery.noConflict();
     for (const item of CONFIG.formatSetting) {
       if (item.space == "-----") continue;
       let spaceElement = kintone.app.record.getSpaceElement(item.space);
-      kintone.app.record.setFieldShown(item.storeField.code, false);
-      let defaultDate = item.initialValue == "" ? "" : item.initialValue == "1" ? getAdjustedDate(1) : item.initialValue == "-1" ? getAdjustedDate(-1) : item.initialValue == "0" ? getAdjustedDate(0) : "";
+      // kintone.app.record.setFieldShown(item.storeField.code, false);
+      // let defaultDate = item.initialValue == "" ? "" : item.initialValue == "1" ? getAdjustedDate(1) : item.initialValue == "-1" ? getAdjustedDate(-1) : item.initialValue == "0" ? getAdjustedDate(0) : "";
+      let defaultDate = "";
+      switch (item.initialValue) {
+        case "1":
+          defaultDate = getAdjustedDate(1);
+          break;
+
+        case "10":
+          defaultDate = getAdjustedDate(10);
+          break;
+
+        case "0":
+          defaultDate = getAdjustedDate(0);
+          break;
+
+        case "-1":
+          defaultDate = getAdjustedDate(-1);
+          break;
+
+        case "-10":
+          defaultDate = getAdjustedDate(-10);
+          break;
+
+        default:
+          defaultDate = "";
+          break;
+      }
       record[item.storeField.code].value = defaultDate;
-      const datePicker = new Kuc.DatePicker({
-        requiredIcon: true,
-        language: "auto",
-        className: "options-class-date",
-        id: item.storeField.code,
+      // const datePicker = new Kuc.DatePicker({
+      //   requiredIcon: true,
+      //   language: "auto",
+      //   className: "options-class-date",
+      //   id: item.storeField.code,
+      //   visible: true,
+      //   disabled: false,
+      //   value: event.type == "app.record.create.show" ? defaultDate : record[item.storeField.code].value,
+      // });
+      const datePicker = new Kuc.Text({
+        // label: 'Fruit',
+        // requiredIcon: true,
+        value: defaultDate,
+        // placeholder: 'Apple',
+        textAlign: 'left',
+        // error: 'Error occurred!',
+        className: 'options-class',
+        id: 'options-id',
         visible: true,
-        disabled: false,
-        value: event.type == "app.record.create.show" ? defaultDate : record[item.storeField.code].value,
+        disabled: false
       });
       $(datePicker).on('change', async (e) => {
         console.log(e.target.value);
-        await setRecord(item.storeField.code, e.target.value);
+        // await setRecord(item.storeField.code, e.target.value);
       })
       console.log('spaceElement', spaceElement);
       $(spaceElement).append(
@@ -115,7 +155,12 @@ jQuery.noConflict();
 
     for (const item of CONFIG.formatSetting) {
       let formatDate;
-      let data = getFieldData(schemaPage, item.storeField.code);
+      let field = getFieldData(schemaPage, item.storeField.code);
+      if (item.space != "-----") {
+        let spaceElement = kintone.app.record.getSpaceElement(item.space);
+        console.log(spaceElement);
+        $(spaceElement).parent().remove();
+      }
       // Create a Date object
       const dateValue = record[item.storeField.code].value;
       const date = new Date(dateValue);
@@ -158,7 +203,7 @@ jQuery.noConflict();
         default:
           break;
       }
-      if (formatDate) $(`.value-${data.id}`).find("span").text(formatDate);
+      if (formatDate) $(`.value-${field.id}`).find("span").text(formatDate);
 
     }
 
@@ -172,7 +217,7 @@ jQuery.noConflict();
     for (const item of CONFIG.formatSetting) {
       let data = getFieldData(schemaPage, item.storeField.code);
       let fields = $(`.value-${data.id}`);
-      
+
       // Create a Date object
       for (const field of fields) {
         let formatDate;
@@ -217,7 +262,7 @@ jQuery.noConflict();
             console.log("No matching format:", item.format);
             break;
         }
-        console.log('formatDate',formatDate);
+        console.log('formatDate', formatDate);
         if (formatDate) $(field).find("span").text(formatDate);
       }
 
