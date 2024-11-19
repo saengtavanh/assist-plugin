@@ -1,13 +1,14 @@
 jQuery.noConflict();
 (async function ($, Swal10, PLUGIN_ID) {
   let CONFIG = kintone.plugin.app.getConfig(PLUGIN_ID).config;
-  const JP_CALENDAR = [
-    ["1912-07-30", "T"],
-    ["1926-12-25", "S"],
-    ["1968-01-25", "M"],
-    ["1989-01-08", "H"],
-    ["2019-05-01", "R"],
-  ]
+  // const JP_CALENDAR = [
+  //   ["1912-07-30", "T"],
+  //   ["1926-12-25", "S"],
+  //   ["1968-01-25", "M"],
+  //   ["1989-01-08", "H"],
+  //   ["2019-05-01", "R"],
+  // ]
+
   if (!CONFIG) return;
   CONFIG = JSON.parse(kintone.plugin.app.getConfig(PLUGIN_ID).config);
   // console.log('CONFIG', CONFIG);
@@ -28,6 +29,7 @@ jQuery.noConflict();
 
   kintone.events.on(["app.record.edit.show", "app.record.create.show"], async (event) => {
     console.log(event);
+    console.log(CONFIG);
     let record = event.record;
     for (const item of CONFIG.formatSetting) {
       if (item.space == "-----") continue;
@@ -61,15 +63,6 @@ jQuery.noConflict();
           break;
       }
       record[item.storeField.code].value = defaultDate;
-      // const datePicker = new Kuc.DatePicker({
-      //   requiredIcon: true,
-      //   language: "auto",
-      //   className: "options-class-date",
-      //   id: item.storeField.code,
-      //   visible: true,
-      //   disabled: false,
-      //   value: event.type == "app.record.create.show" ? defaultDate : record[item.storeField.code].value,
-      // });
       const datePicker = new Kuc.Text({
         // label: 'Fruit',
         // requiredIcon: true,
@@ -128,28 +121,61 @@ jQuery.noConflict();
 
   // Function to determine the Japanese era symbol and custom year
   function getJapaneseEra(date) {
+    const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
+    console.log('JP_CALENDAR', JP_CALENDAR);
+
     let eraSymbol = "";
     let eraStartYear = 0;
+    let eraStartDate = null;
 
     // Loop through the calendar array to find the correct era
     for (let i = JP_CALENDAR.length - 1; i >= 0; i--) {
-      const [startDateStr, symbol] = JP_CALENDAR[i];
-      const startDate = new Date(startDateStr);
+      const startDateStr = JP_CALENDAR[i][0]; // The start date of the era
+      const symbol = JP_CALENDAR[i][2];      // The era symbol (e.g., "R")
+      const startDate = new Date(startDateStr); // The date object for the start date
 
       // If the given date is on or after this era start date
       if (date >= startDate) {
         eraSymbol = symbol;
-        eraStartYear = date.getFullYear() - startDate.getFullYear() + 1;
+        eraStartDate = startDate;
+        eraStartYear = date.getFullYear() - startDate.getFullYear(); // Difference in years
+
+        // If the given date is before the start of the era, reset customYear to 1
+        if (date.getMonth() < startDate.getMonth() || (date.getMonth() === startDate.getMonth() && date.getDate() < startDate.getDate())) {
+          eraStartYear = 0;
+        }
+        eraStartYear += 1;  // Start year should be 1 for the first year of the era
         break;
       }
     }
 
-    // Format era year with two digits
+    if (!eraSymbol) {
+      return { error: 'Era not found for the given date' };
+    }
+
+    // Format era year with two digits, e.g., "01" for the first year of the era
     const customYear = String(eraStartYear).padStart(2, '0');
-    return { eraSymbol, customYear };
+
+    // Format the date to "YYYY-MM-DD"
+    const eraYear = date.getFullYear();
+    const eraMonth = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-based
+    const eraDay = String(date.getDate()).padStart(2, '0');
+
+    const formattedDate = `${eraYear}-${eraMonth}-${eraDay}`;
+
+    return { eraSymbol, customYear, formattedDate };
   }
 
   kintone.events.on("app.record.detail.show", async (event) => {
+    console.log(CONFIG);
+    // Example usage:
+    const testDate1 = new Date("2019-05-01");  // Example 1
+    const testDate2 = new Date("2020-04-30");  // Example 2
+    const testDate3 = new Date("2020-05-01");  // Example 3
+
+    console.log(getJapaneseEra(testDate1)); // R1 05 01 => 2019-05-01
+    console.log(getJapaneseEra(testDate2)); // R1 04 30 => 2020-04-30
+    console.log(getJapaneseEra(testDate3)); // R2 05 01 => 2020-05-01
     const schemaPage = cybozu.data.page.SCHEMA_DATA;
     let record = event.record;
 
@@ -163,6 +189,7 @@ jQuery.noConflict();
       }
       // Create a Date object
       const dateValue = record[item.storeField.code].value;
+      if(!dateValue) continue;
       const date = new Date(dateValue);
 
       // Get era symbol and custom year
