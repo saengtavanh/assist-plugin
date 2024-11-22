@@ -77,22 +77,43 @@ jQuery.noConflict();
     const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
     console.log('JP_CALENDAR', JP_CALENDAR);
 
-    // Clean and normalize the input
-    eraInput = eraInput.replace(/\s+/g, '').toUpperCase(); // Remove spaces and normalize to uppercase
+    // // Clean and normalize the input
+    // eraInput = eraInput.replace(/\s+/g, '').toUpperCase(); // Remove spaces and normalize to uppercase
 
-    // Extract the era symbol, custom year, month, and day
-    const match = /^([A-Z])(\d{2})(\d{2})(\d{2})$/.exec(eraInput);
-    if (!match) {
-      return { error: 'Invalid era input format' };
+    // // Extract the era symbol, custom year, month, and day
+    // const match = /^([A-Z])(\d{2})(\d{2})(\d{2})$/.exec(eraInput);
+    // if (!match) {
+    //   return { error: 'Invalid era input format' };
+    // }
+    // Normalize the input: remove extra spaces and split into parts
+    eraInput = eraInput.replace(/\s+/g, ' ').trim(); // Normalize spaces
+    const parts = eraInput.split(' '); // Split by spaces
+
+    if (parts.length !== 4) {
+      return { error: 'Invalid era input format' }; // Ensure it has exactly 4 parts
     }
 
-    const [, eraSymbol, customYearStr, monthStr, dayStr] = match;
-    const customYear = parseInt(customYearStr, 10);
-    const month = parseInt(monthStr, 10);
-    const day = parseInt(dayStr, 10);
+    // const [, eraSymbol, customYearStr, monthStr, dayStr] = match;
+    // const customYear = parseInt(customYearStr, 10);
+    // const month = parseInt(monthStr, 10);
+    // const day = parseInt(dayStr, 10);
+    const [eraSymbol, customYearStr, monthStr, dayStr] = parts;
+    const customYear = parseInt(customYearStr, 10); // Parse as integer
+    const month = parseInt(monthStr, 10); // Parse as integer
+    const day = parseInt(dayStr, 10); // Parse as integer
 
+    // Validate parsed parts
+    if (isNaN(customYear) || isNaN(month) || isNaN(day)) {
+      return { error: 'Invalid era year, month, or day' };
+    }
+
+    // // Find the corresponding era start date
+    // const eraData = JP_CALENDAR.find((entry) => entry[2] === eraSymbol);
+    // if (!eraData) {
+    //   return { error: `Era symbol '${eraSymbol}' not found in JP_CALENDAR` };
+    // }
     // Find the corresponding era start date
-    const eraData = JP_CALENDAR.find((entry) => entry[2] === eraSymbol);
+    const eraData = JP_CALENDAR.find((entry) => entry[2].toUpperCase() === eraSymbol.toUpperCase());
     if (!eraData) {
       return { error: `Era symbol '${eraSymbol}' not found in JP_CALENDAR` };
     }
@@ -104,8 +125,8 @@ jQuery.noConflict();
     console.log('year: ' + year);
 
     const eraStartMonth = eraStartDate.getMonth() + 1; // Month is 0-based
-    console.log('eraStartMonth',eraStartMonth);
-      const eraStartDay = eraStartDate.getDate();
+    console.log('eraStartMonth', eraStartMonth);
+    const eraStartDay = eraStartDate.getDate();
     // Handle the first year of the era (customYear === 1)
     // for (let i=0; i<customYear; i++){
     //   if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
@@ -113,13 +134,13 @@ jQuery.noConflict();
     //   }
     // }
     // if (customYear === 1) {
-      // const eraStartMonth = eraStartDate.getMonth() + 1; // Month is 0-based
-      // const eraStartDay = eraStartDate.getDate();
+    // const eraStartMonth = eraStartDate.getMonth() + 1; // Month is 0-based
+    // const eraStartDay = eraStartDate.getDate();
 
-      // If the input month/day falls before the era's start date, it must belong to the next Gregorian year
-      if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
-        year++;
-      }
+    // If the input month/day falls before the era's start date, it must belong to the next Gregorian year
+    if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
+      year++;
+    }
     // }
 
     // Validate the month and day
@@ -143,6 +164,7 @@ jQuery.noConflict();
 
   // Function to parse and convert various date formats to YYYY-MM-DD
   async function parseDate(input) {
+    if (!input) return getAdjustedDate(0);
     const currentYear = new Date().getFullYear();
     const currentEra = "R"; // Adjust this based on your needs
     const eraStart = { R: { year: 2019, month: 5, day: 1 } }; // Add other eras if needed
@@ -192,6 +214,12 @@ jQuery.noConflict();
       year = currentYear;
       month = parseInt(m, 10);
       day = parseInt(d, 10);
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+      // YYYY-MM-DD
+      const [y, m, d] = input.split("-");
+      year = parseInt(y, 10);
+      month = parseInt(m, 10);
+      day = parseInt(d, 10);
     } else {
       //eYYMMDD
       //e YY MM DD
@@ -220,8 +248,13 @@ jQuery.noConflict();
 
       let defaultDate = getAdjustedDate(filteredFields[0].initialValue);
 
+      //set default date to field
+      for (let field of filteredFields) {
+        record[field.storeField.code].value = defaultDate;
+      }
 
-      const datePicker = new Kuc.Text({
+
+      const dateInput = new Kuc.Text({
         // label: 'Fruit',
         // requiredIcon: true,
         value: defaultDate,
@@ -233,8 +266,9 @@ jQuery.noConflict();
         visible: true,
         disabled: false
       });
-      $(datePicker).on('change', async (e) => {
+      $(dateInput).on('change', async (e) => {
         console.log(e.target.value);
+        // if (!e.target.value) return;
         for (const field of filteredFields) {
           console.log(record[field.storeField.code]);
           let changeFormat = await parseDate(e.target.value)
@@ -246,7 +280,7 @@ jQuery.noConflict();
       $(spaceElement).append(
         $("<div>").addClass("control-gaia").append(
           $("<div>").addClass("control-label-gaia").append($("<span>").addClass("control-label-text-gaia").text("Date")),
-          datePicker
+          dateInput
         )
       )
     }
