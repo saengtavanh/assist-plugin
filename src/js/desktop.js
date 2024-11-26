@@ -76,6 +76,7 @@ jQuery.noConflict();
   async function convertJapaneseEraToDate(eraInput) {
     const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
     console.log('JP_CALENDAR', JP_CALENDAR);
+    let eraSymbol, customYear, month, day;
 
     // // Clean and normalize the input
     // eraInput = eraInput.replace(/\s+/g, '').toUpperCase(); // Remove spaces and normalize to uppercase
@@ -86,21 +87,36 @@ jQuery.noConflict();
     //   return { error: 'Invalid era input format' };
     // }
     // Normalize the input: remove extra spaces and split into parts
-    eraInput = eraInput.replace(/\s+/g, ' ').trim(); // Normalize spaces
-    const parts = eraInput.split(' '); // Split by spaces
-
-    if (parts.length !== 4) {
-      return { error: 'Invalid era input format' }; // Ensure it has exactly 4 parts
+    if (!eraInput.includes(' ')) {
+      // Handle compact format: eYYMMDD
+      const match = /^([A-Za-z])(\d{2})(\d{2})(\d{2})$/.exec(eraInput);
+      if (!match) {
+        return { error: 'Invalid compact era input format' };
+      }
+      [, eraSymbol, customYear, month, day] = match;
+    } else {
+      // Normalize spaced input: e YY MM DD or e Y MM D
+      eraInput = eraInput.replace(/\s+/g, ' ').trim(); // Normalize spaces
+      const parts = eraInput.split(' ');
+  
+      if (parts.length !== 4) {
+        return { error: 'Invalid spaced era input format' }; // Ensure it has exactly 4 parts
+      }
+  
+      [eraSymbol, customYear, month, day] = parts;
     }
 
     // const [, eraSymbol, customYearStr, monthStr, dayStr] = match;
     // const customYear = parseInt(customYearStr, 10);
     // const month = parseInt(monthStr, 10);
     // const day = parseInt(dayStr, 10);
-    const [eraSymbol, customYearStr, monthStr, dayStr] = parts;
-    const customYear = parseInt(customYearStr, 10); // Parse as integer
-    const month = parseInt(monthStr, 10); // Parse as integer
-    const day = parseInt(dayStr, 10); // Parse as integer
+    // const [eraSymbol, customYearStr, monthStr, dayStr] = parts;
+    // const customYear = parseInt(customYearStr, 10); // Parse as integer
+    // const month = parseInt(monthStr, 10); // Parse as integer
+    // const day = parseInt(dayStr, 10); // Parse as integer
+    customYear = parseInt(customYear, 10); // Parse as integer
+    month = parseInt(month, 10); // Parse as integer
+    day = parseInt(day, 10); // Parse as integer
 
     // Validate parsed parts
     if (isNaN(customYear) || isNaN(month) || isNaN(day)) {
