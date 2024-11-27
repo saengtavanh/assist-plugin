@@ -91,18 +91,18 @@ jQuery.noConflict();
       // Handle compact format: eYYMMDD
       const match = /^([A-Za-z])(\d{2})(\d{2})(\d{2})$/.exec(eraInput);
       if (!match) {
-        return { error: 'Invalid compact era input format' };
+        return false;
       }
       [, eraSymbol, customYear, month, day] = match;
     } else {
       // Normalize spaced input: e YY MM DD or e Y MM D
       eraInput = eraInput.replace(/\s+/g, ' ').trim(); // Normalize spaces
       const parts = eraInput.split(' ');
-  
+
       if (parts.length !== 4) {
-        return { error: 'Invalid spaced era input format' }; // Ensure it has exactly 4 parts
+        return false; // Ensure it has exactly 4 parts
       }
-  
+
       [eraSymbol, customYear, month, day] = parts;
     }
 
@@ -120,7 +120,7 @@ jQuery.noConflict();
 
     // Validate parsed parts
     if (isNaN(customYear) || isNaN(month) || isNaN(day)) {
-      return { error: 'Invalid era year, month, or day' };
+      return false;
     }
 
     // // Find the corresponding era start date
@@ -131,7 +131,7 @@ jQuery.noConflict();
     // Find the corresponding era start date
     const eraData = JP_CALENDAR.find((entry) => entry[2].toUpperCase() === eraSymbol.toUpperCase());
     if (!eraData) {
-      return { error: `Era symbol '${eraSymbol}' not found in JP_CALENDAR` };
+      return false;
     }
 
     const eraStartDate = new Date(eraData[0]); // Get the era's start date
@@ -161,7 +161,7 @@ jQuery.noConflict();
 
     // Validate the month and day
     if (month < 1 || month > 12 || day < 1 || day > 31) {
-      return { error: 'Invalid month or day in input' };
+      return false;
     }
 
     // Return the reconstructed Gregorian date in "YYYY-MM-DD" format
@@ -181,97 +181,102 @@ jQuery.noConflict();
   // Function to parse and convert various date formats to YYYY-MM-DD
   async function parseDate(input) {
     if (!input) return getAdjustedDate(0);
-    const currentYear = new Date().getFullYear();
-    const currentEra = "R"; // Adjust this based on your needs
-    const eraStart = { R: { year: 2019, month: 5, day: 1 } }; // Add other eras if needed
+    try {
+      const currentYear = new Date().getFullYear();
 
-    let year, month, day;
+      let year, month, day;
 
-    // Helper function to pad single-digit numbers with leading zeros
-    const pad = (num) => String(num).padStart(2, "0");
+      // Helper function to pad single-digit numbers with leading zeros
+      const pad = (num) => String(num).padStart(2, "0");
+      const isValidDate = (y, m, d) => {
+        const date = new Date(y, m - 1, d); // Months are 0-indexed in JS
+        return date.getFullYear() === y && date.getMonth() + 1 === m && date.getDate() === d;
+    };
 
-    // Handle different formats
-    if (/^\d{8}$/.test(input)) {
-      // YYYYMMDD
-      year = parseInt(input.slice(0, 4), 10);
-      month = parseInt(input.slice(4, 6), 10);
-      day = parseInt(input.slice(6, 8), 10);
-    } else if (/^\d{6}$/.test(input)) {
-      // YYMMDD
-      year = parseInt(input.slice(0, 2), 10) + 2000; // Assuming 21st century
-      month = parseInt(input.slice(2, 4), 10);
-      day = parseInt(input.slice(4, 6), 10);
-    } else if (/^\d{4}$/.test(input)) {
-      // MMDD
-      year = currentYear;
-      month = parseInt(input.slice(0, 2), 10);
-      day = parseInt(input.slice(2, 4), 10);
-    } else if (/^\d{2}\/\d{1,2}$/.test(input)) {
-      // MM/DD or MM/D
-      const [m, d] = input.split("/");
-      year = currentYear;
-      month = parseInt(m, 10);
-      day = parseInt(d, 10);
-    } else if (/^\d{4} \d{1,2} \d{1,2}$/.test(input)) {
-      // YYYY M D
-      const [y, m, d] = input.split(" ");
-      year = parseInt(y, 10);
-      month = parseInt(m, 10);
-      day = parseInt(d, 10);
-    } else if (/^\d{2} \d{1,2} \d{1,2}$/.test(input)) {
-      // YY M D
-      const [y, m, d] = input.split(" ");
-      year = parseInt(y, 10) + 2000; // Assuming 21st century
-      month = parseInt(m, 10);
-      day = parseInt(d, 10);
-    } else if (/^\d{1,2} \d{1,2}$/.test(input)) {
-      // M D
-      const [m, d] = input.split(" ");
-      year = currentYear;
-      month = parseInt(m, 10);
-      day = parseInt(d, 10);
-    } else if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
-      // YYYY-MM-DD
-      const [y, m, d] = input.split("-");
-      year = parseInt(y, 10);
-      month = parseInt(m, 10);
-      day = parseInt(d, 10);
-    } else {
-      //eYYMMDD
-      //e YY MM DD
-      //e Y MM D
-      let revert = await convertJapaneseEraToDate(input);
-      year = revert.year;
-      month = revert.month;
-      day = revert.day;
-      console.log(revert);
-      // throw new Error(`Unrecognized date format: ${input}`);
+      // Handle different formats
+      if (/^\d{8}$/.test(input)) {
+        // YYYYMMDD
+        year = parseInt(input.slice(0, 4), 10);
+        month = parseInt(input.slice(4, 6), 10);
+        day = parseInt(input.slice(6, 8), 10);
+      } else if (/^\d{6}$/.test(input)) {
+        // YYMMDD
+        year = parseInt(input.slice(0, 2), 10) + 2000; // Assuming 21st century
+        month = parseInt(input.slice(2, 4), 10);
+        day = parseInt(input.slice(4, 6), 10);
+      } else if (/^\d{4}$/.test(input)) {
+        // MMDD
+        year = currentYear;
+        month = parseInt(input.slice(0, 2), 10);
+        day = parseInt(input.slice(2, 4), 10);
+      } else if (/^\d{2}\/\d{1,2}$/.test(input)) {
+        // MM/DD or MM/D
+        const [m, d] = input.split("/");
+        year = currentYear;
+        month = parseInt(m, 10);
+        day = parseInt(d, 10);
+      } else if (/^\d{4} \d{1,2} \d{1,2}$/.test(input)) {
+        // YYYY M D
+        const [y, m, d] = input.split(" ");
+        year = parseInt(y, 10);
+        month = parseInt(m, 10);
+        day = parseInt(d, 10);
+      } else if (/^\d{2} \d{1,2} \d{1,2}$/.test(input)) {
+        // YY M D
+        const [y, m, d] = input.split(" ");
+        year = parseInt(y, 10) + 2000; // Assuming 21st century
+        month = parseInt(m, 10);
+        day = parseInt(d, 10);
+      } else if (/^\d{1,2} \d{1,2}$/.test(input)) {
+        // M D
+        const [m, d] = input.split(" ");
+        year = currentYear;
+        month = parseInt(m, 10);
+        day = parseInt(d, 10);
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+        // YYYY-MM-DD
+        const [y, m, d] = input.split("-");
+        year = parseInt(y, 10);
+        month = parseInt(m, 10);
+        day = parseInt(d, 10);
+      } else {
+        //eYYMMDD
+        //e YY MM DD
+        //e Y MM D
+        let revert = await convertJapaneseEraToDate(input);
+        if (!revert) return false;
+        year = parseInt(revert.year, 10);
+        month = parseInt(revert.month, 10);
+        day = parseInt(revert.day, 10);
+        console.log(revert);
+        // throw new Error(`Unrecognized date format: ${input}`);
+      }
+      // Validate the extracted date
+      if (!isValidDate(year, month, day)) {
+        return false; // Invalid date
+      }
+
+      return `${year}-${pad(month)}-${pad(day)}`;
+    } catch (error) {
+      return false;
     }
-
-    return `${year}-${pad(month)}-${pad(day)}`;
   }
 
   kintone.events.on(["app.record.edit.show", "app.record.create.show"], async (event) => {
     console.log(event);
     console.log(CONFIG);
     let record = event.record;
-    let spaceMap = [...new Set(CONFIG.formatSetting.map(item => item.space))].filter(space => space !== "-----");
-    console.log('spaceMap', spaceMap);
-    for (let space of spaceMap) {
-      let spaceElement = kintone.app.record.getSpaceElement(space);
-      const filteredFields = CONFIG.formatSetting.filter(item => item.space === space);
-      console.log('filteredFields', filteredFields);
-
-      let defaultDate = getAdjustedDate(filteredFields[0].initialValue);
+    for (let item of CONFIG.formatSetting) {
+      if (item.space === "-----") continue;
+      kintone.app.record.setFieldShown(item.storeField.code, false);
+      let spaceElement = kintone.app.record.getSpaceElement(item.space);
+      let defaultDate = getAdjustedDate(item.initialValue);
+      if (event.type === "app.record.edit.show") defaultDate = record[item.storeField.code].value;
 
       //set default date to field
-      for (let field of filteredFields) {
-        record[field.storeField.code].value = defaultDate;
-      }
-
-
+      record[item.storeField.code].value = defaultDate;
       const dateInput = new Kuc.Text({
-        // label: 'Fruit',
+        label: item.storeField.label,
         // requiredIcon: true,
         value: defaultDate,
         // placeholder: 'Apple',
@@ -282,24 +287,68 @@ jQuery.noConflict();
         visible: true,
         disabled: false
       });
-      $(dateInput).on('change', async (e) => {
-        console.log(e.target.value);
-        // if (!e.target.value) return;
-        for (const field of filteredFields) {
-          console.log(record[field.storeField.code]);
-          let changeFormat = await parseDate(e.target.value)
-          await setRecord(field.storeField.code, changeFormat);
-        }
-        // await setRecord(item.storeField.code, e.target.value);
-      })
-      console.log('spaceElement', spaceElement);
+
       $(spaceElement).append(
         $("<div>").addClass("control-gaia").append(
-          $("<div>").addClass("control-label-gaia").append($("<span>").addClass("control-label-text-gaia").text("Date")),
           dateInput
         )
       )
+      $(dateInput).on('change', async (e) => {
+        console.log(e.target.value);
+        let changeFormat = await parseDate(e.target.value);
+        console.log('change format', changeFormat);
+        if (changeFormat === false) {
+          return dateInput.error = "不正な値です";
+        }else{
+          dateInput.error = false;
+          await setRecord(item.storeField.code, changeFormat);
+        }
+        
+      })
     }
+    // for (let space of spaceMap) {
+    //   let spaceElement = kintone.app.record.getSpaceElement(space);
+    //   const filteredFields = CONFIG.formatSetting.filter(item => item.space === space);
+    //   console.log('filteredFields', filteredFields);
+
+    //   let defaultDate = getAdjustedDate(filteredFields[0].initialValue);
+
+    //   //set default date to field
+    //   for (let field of filteredFields) {
+    //     record[field.storeField.code].value = defaultDate;
+    //   }
+
+
+    //   const dateInput = new Kuc.Text({
+    //     // label: 'Fruit',
+    //     // requiredIcon: true,
+    //     value: defaultDate,
+    //     // placeholder: 'Apple',
+    //     textAlign: 'left',
+    //     // error: 'Error occurred!',
+    //     className: 'options-class',
+    //     id: 'options-id',
+    //     visible: true,
+    //     disabled: false
+    //   });
+    //   $(dateInput).on('change', async (e) => {
+    //     console.log(e.target.value);
+    //     // if (!e.target.value) return;
+    //     for (const field of filteredFields) {
+    //       console.log(record[field.storeField.code]);
+    //       let changeFormat = await parseDate(e.target.value)
+    //       await setRecord(field.storeField.code, changeFormat);
+    //     }
+    //     // await setRecord(item.storeField.code, e.target.value);
+    //   })
+    //   console.log('spaceElement', spaceElement);
+    //   $(spaceElement).append(
+    //     $("<div>").addClass("control-gaia").append(
+    //       $("<div>").addClass("control-label-gaia").append($("<span>").addClass("control-label-text-gaia").text("Date")),
+    //       dateInput
+    //     )
+    //   )
+    // }
 
     // for (const item of CONFIG.formatSetting) {
     //   if (item.space == "-----") continue;
@@ -394,13 +443,13 @@ jQuery.noConflict();
   kintone.events.on("app.record.detail.show", async (event) => {
     console.log(CONFIG);
     // Example usage:
-    const testDate1 = new Date("2019-05-01");  // Example 1
-    const testDate2 = new Date("2020-04-30");  // Example 2
-    const testDate3 = new Date("2020-05-01");  // Example 3
+    // const testDate1 = new Date("2019-05-01");  // Example 1
+    // const testDate2 = new Date("2020-04-30");  // Example 2
+    // const testDate3 = new Date("2020-05-01");  // Example 3
 
-    console.log(getJapaneseEra(testDate1)); // R1 05 01 => 2019-05-01
-    console.log(getJapaneseEra(testDate2)); // R1 04 30 => 2020-04-30
-    console.log(getJapaneseEra(testDate3)); // R2 05 01 => 2020-05-01
+    // console.log(getJapaneseEra(testDate1)); // R1 05 01 => 2019-05-01
+    // console.log(getJapaneseEra(testDate2)); // R1 04 30 => 2020-04-30
+    // console.log(getJapaneseEra(testDate3)); // R2 05 01 => 2020-05-01
     const schemaPage = cybozu.data.page.SCHEMA_DATA;
     let record = event.record;
 
@@ -465,9 +514,12 @@ jQuery.noConflict();
 
   kintone.events.on("app.record.index.show", async (event) => {
     const schemaPage = cybozu.data.page.SCHEMA_DATA;
+    let record = event.records;
+    console.log('record', record);
 
     for (const item of CONFIG.formatSetting) {
       let data = getFieldData(schemaPage, item.storeField.code);
+      console.log('data',data);
       let fields = $(`.value-${data.id}`);
 
       // Create a Date object
@@ -519,7 +571,26 @@ jQuery.noConflict();
       }
 
     }
+    $(document).ready(function () {
+      console.log("$('.contextbarBtn-gray.recordlist-cancel-button-gaia'):::", $('.contextbarBtn-gray.recordlist-cancel-button-gaia'));
+      $('.contextbarBtn-gray.recordlist-cancel-button-gaia').on('click', (e)=> {
+        console.log(e);
+        alert("aaaa")
+      })
+
+      let buttonEl = document.querySelectorAll(".fade-in")
+
+      console.log("buttonElbuttonElbuttonEl", buttonEl);
+    });
+
+    
+    
+
     return event;
   }
-  );
+);
+
+  kintone.events.on("app.record.index.edit.submit", async (event) => {
+    console.log('event', event);
+  })
 })(jQuery, Sweetalert2_10.noConflict(true), kintone.$PLUGIN_ID);

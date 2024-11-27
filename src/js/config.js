@@ -162,6 +162,7 @@ jQuery.noConflict();
 		let hasError = false;
 		let errorMessage = "";
 		let storeFiledArray = [];
+		let spaceArray = [];
 		//group setting table
 		let formatSettingTable = $('#kintoneplugin-setting-tspace > tr:gt(0)').toArray();
 		for (const [index, element] of formatSettingTable.entries()) {
@@ -177,13 +178,16 @@ jQuery.noConflict();
 				$(type).parent().removeClass('validation-error');
 			}
 
-			// if (space.val() == "-----") {
-			// 	errorMessage += `<p>Please select Space type on row: ${index + 1}</p>`;
-			// 	$(space).parent().addClass('validation-error');
-			// 	hasError = true;
-			// } else {
-			// 	$(space).parent().removeClass('validation-error');
-			// }
+			if (space.val()) {
+				if (!spaceArray.includes(space.val().trim())) {
+					$(space).parent().removeClass('validation-error');
+					spaceArray.push(space.val());
+				} else {
+					$(space).parent().addClass('validation-error');
+					errorMessage += `<p>Duplicate space.</p>`;
+					hasError = true;
+				}
+			}
 
 			if (storeField.val() == "-----") {
 				errorMessage += `<p>Please select Store field on row: ${index + 1}</p>`;
@@ -210,6 +214,7 @@ jQuery.noConflict();
 			// }
 
 		}
+		if (errorMessage.length > 0) errorMessage = "<p>【Date format setting】</p>" + errorMessage;
 
 
 		if (hasError) Swal10.fire({
