@@ -165,13 +165,16 @@ jQuery.noConflict();
 		let spaceArray = [];
 		//group setting table
 		let formatSettingTable = $('#kintoneplugin-setting-tspace > tr:gt(0)').toArray();
+		let typeError = "";
+		let storeFieldError = "";
+		let spaceError = "";
 		for (const [index, element] of formatSettingTable.entries()) {
 			let type = $(element).find('#type');
 			let space = $(element).find('#space');
 			let storeField = $(element).find('#store_field');
 			let format = $(element).find('#format');
 			if (type.val() == "-----") {
-				errorMessage += `<p>Please select Type on row: ${index + 1}</p>`;
+				typeError = `<p>タイプを選択してください。</p>`;
 				$(type).parent().addClass('validation-error');
 				hasError = true;
 			} else {
@@ -184,13 +187,13 @@ jQuery.noConflict();
 					spaceArray.push(space.val());
 				} else {
 					$(space).parent().addClass('validation-error');
-					errorMessage += `<p>Duplicate space.</p>`;
+					spaceError = `<p>同じスペースを選択できません</p>`;
 					hasError = true;
 				}
 			}
 
 			if (storeField.val() == "-----") {
-				errorMessage += `<p>Please select Store field on row: ${index + 1}</p>`;
+				storeFieldError = `<p>格納フィールドを選択してください。</p>`;
 				$(storeField).parent().addClass('validation-error');
 				hasError = true;
 			} else {
@@ -200,7 +203,7 @@ jQuery.noConflict();
 					storeFiledArray.push(storeField.val());
 				} else {
 					$(storeField).parent().addClass('validation-error');
-					errorMessage += `<p>Field "${storeField.val()}" already exists.</p>`;
+					errorMessage += `<p>検索対象フィールド「${storeField.val()}」はすでに存在しています。</p>`;
 					hasError = true;
 				}
 			}
@@ -214,7 +217,10 @@ jQuery.noConflict();
 			// }
 
 		}
-		if (errorMessage.length > 0) errorMessage = "<p>【Date format setting】</p>" + errorMessage;
+		if (typeError) errorMessage += typeError;
+		if (spaceError) errorMessage += spaceError;
+		if (storeFieldError) errorMessage += storeFieldError;
+		if (errorMessage.length > 0) errorMessage = "<p>【日付フォーマットの設定】</p>" + errorMessage;
 
 
 		if (hasError) Swal10.fire({
@@ -265,12 +271,12 @@ jQuery.noConflict();
 			Swal10.fire({
 				position: "center",
 				icon: "info",
-				text: "Do you want to exit the plugin configuration?",
+				text: "プラグインの設定を終了しますか？",
 				confirmButtonColor: "#3498db",
 				showCancelButton: true,
 				cancelButtonColor: "#f7f9fa",
 				confirmButtonText: "OK",
-				cancelButtonText: "Cancel",
+				cancelButtonText: "キャンセル",
 				customClass: {
 					confirmButton: 'custom-confirm-button',
 					cancelButton: 'custom-cancel-button'
@@ -309,12 +315,12 @@ jQuery.noConflict();
 				},
 				position: "center",
 				icon: "info",
-				text: "Do you want to export configuration information?",
+				text: "設定情報の書き出しをしますか？",
 				confirmButtonColor: "#3498db",
 				showCancelButton: true,
 				cancelButtonColor: "#f7f9fa",
 				confirmButtonText: "OK",
-				cancelButtonText: "Cancel",
+				cancelButtonText: "キャンセル",
 			}).then(async (result) => {
 				if (result.isConfirmed) {
 					let hasError = await validation("export", await getData());
@@ -354,7 +360,7 @@ jQuery.noConflict();
 						dataImport = JSON.parse(fileContent);
 					} catch (error) {
 						let customClass = $("<div></div>")
-							.html(`The file format for reading configuration information is JSON format<br>  Please check the file format extension.`)
+							.html(`読み込み用設定情報のファイル形式はJSON形式です。<br> ファイル形式の拡張子をご確認ください。`)
 							.css("font-size", "14px");
 						await Swal10.fire({
 							icon: "error",
@@ -375,21 +381,13 @@ jQuery.noConflict();
 						Swal10.fire({
 							position: 'center',
 							icon: 'success',
-							text: 'Configuration information was successfully imported',
+							text: '正常に設定情報の読み込みしました。',
 							showConfirmButton: true,
 						});
 						$("#fileInput").val('');
 					}
 				};
 				reader.readAsText(file);
-			} else {
-				Swal10.fire({
-					position: "center",
-					text: "Select the file you want to import",
-					confirmButtonColor: "#3498db",
-					confirmButtonText: "OK",
-				});
-				$("#fileInput").val('');
 			}
 		});
 
@@ -414,12 +412,10 @@ jQuery.noConflict();
 			function checkType(configStructure, dataImport) {
 				if (Array.isArray(configStructure)) {
 					if (!Array.isArray(dataImport)) {
-						errorTexts.push("The data loaded with configuration information is not an array");
 						return false;
 					}
 					for (let item of dataImport) {
 						if (!checkType(configStructure[0], item)) {
-							errorTexts.push("Array element type mismatch");
 							return false;
 						}
 					}
@@ -428,12 +424,10 @@ jQuery.noConflict();
 
 				if (typeof configStructure === 'object' && !Array.isArray(configStructure)) {
 					if (typeof dataImport !== 'object' || Array.isArray(dataImport)) {
-						// errorTexts.push("The data loaded with configuration information is not an object");
 						return false;
 					}
 					for (let key in configStructure) {
 						if (!(key in dataImport)) {
-							// errorTexts.push(`${key} Key not found.`);
 							return false;
 						}
 						if (!checkType(configStructure[key], dataImport[key])) {
@@ -453,7 +447,6 @@ jQuery.noConflict();
 			function checkAllCases(dataImport) {
 				// Check if the object is empty
 				if (Object.keys(dataImport).length === 0) {
-					// errorTexts.push(" オブジェクトが未入力です。");
 					return false;
 				}
 
@@ -468,7 +461,7 @@ jQuery.noConflict();
 			let isValid = checkAllCases(dataImport);
 			if (!isValid) {
 				let customClass = $("<div></div>")
-					.text("Failed to load configuration information")
+					.text("設定情報の読み込みに失敗しました。")
 					.css("font-size", "18px");
 				await Swal10.fire({
 					icon: "error",

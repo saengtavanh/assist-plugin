@@ -29,7 +29,6 @@ jQuery.noConflict();
   // Function to determine the Japanese era symbol and custom year
   function getJapaneseEra(date) {
     const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
-    console.log('JP_CALENDAR', JP_CALENDAR);
 
     let eraSymbol = "";
     let eraStartYear = 0;
@@ -75,7 +74,6 @@ jQuery.noConflict();
 
   async function convertJapaneseEraToDate(eraInput) {
     const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
-    console.log('JP_CALENDAR', JP_CALENDAR);
     let eraSymbol, customYear, month, day;
 
     // // Clean and normalize the input
@@ -122,12 +120,6 @@ jQuery.noConflict();
     if (isNaN(customYear) || isNaN(month) || isNaN(day)) {
       return false;
     }
-
-    // // Find the corresponding era start date
-    // const eraData = JP_CALENDAR.find((entry) => entry[2] === eraSymbol);
-    // if (!eraData) {
-    //   return { error: `Era symbol '${eraSymbol}' not found in JP_CALENDAR` };
-    // }
     // Find the corresponding era start date
     const eraData = JP_CALENDAR.find((entry) => entry[2].toUpperCase() === eraSymbol.toUpperCase());
     if (!eraData) {
@@ -138,21 +130,9 @@ jQuery.noConflict();
 
     // Determine the Gregorian year
     let year = eraStartDate.getFullYear() + customYear - 1;
-    console.log('year: ' + year);
 
     const eraStartMonth = eraStartDate.getMonth() + 1; // Month is 0-based
-    console.log('eraStartMonth', eraStartMonth);
     const eraStartDay = eraStartDate.getDate();
-    // Handle the first year of the era (customYear === 1)
-    // for (let i=0; i<customYear; i++){
-    //   if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
-    //     year++;
-    //   }
-    // }
-    // if (customYear === 1) {
-    // const eraStartMonth = eraStartDate.getMonth() + 1; // Month is 0-based
-    // const eraStartDay = eraStartDate.getDate();
-
     // If the input month/day falls before the era's start date, it must belong to the next Gregorian year
     if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
       year++;
@@ -163,14 +143,6 @@ jQuery.noConflict();
     if (month < 1 || month > 12 || day < 1 || day > 31) {
       return false;
     }
-
-    // Return the reconstructed Gregorian date in "YYYY-MM-DD" format
-    // const formattedDate = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    // const formattedDate = {
-    //   year: String(year),
-    //   month: String(month).padStart(2, '0'),
-    //   day: String(day).padStart(2, '0')
-    // };
     return {
       year: String(year),
       month: String(month),
@@ -191,7 +163,7 @@ jQuery.noConflict();
       const isValidDate = (y, m, d) => {
         const date = new Date(y, m - 1, d); // Months are 0-indexed in JS
         return date.getFullYear() === y && date.getMonth() + 1 === m && date.getDate() === d;
-    };
+      };
 
       // Handle different formats
       if (/^\d{8}$/.test(input)) {
@@ -248,7 +220,6 @@ jQuery.noConflict();
         year = parseInt(revert.year, 10);
         month = parseInt(revert.month, 10);
         day = parseInt(revert.day, 10);
-        console.log(revert);
         // throw new Error(`Unrecognized date format: ${input}`);
       }
       // Validate the extracted date
@@ -263,8 +234,6 @@ jQuery.noConflict();
   }
 
   kintone.events.on(["app.record.edit.show", "app.record.create.show"], async (event) => {
-    console.log(event);
-    console.log(CONFIG);
     let record = event.record;
     for (let item of CONFIG.formatSetting) {
       if (item.space === "-----") continue;
@@ -277,11 +246,8 @@ jQuery.noConflict();
       record[item.storeField.code].value = defaultDate;
       const dateInput = new Kuc.Text({
         label: item.storeField.label,
-        // requiredIcon: true,
         value: defaultDate,
-        // placeholder: 'Apple',
         textAlign: 'left',
-        // error: 'Error occurred!',
         className: 'options-class',
         id: 'options-id',
         visible: true,
@@ -294,123 +260,19 @@ jQuery.noConflict();
         )
       )
       $(dateInput).on('change', async (e) => {
-        console.log(e.target.value);
         let changeFormat = await parseDate(e.target.value);
-        console.log('change format', changeFormat);
         if (changeFormat === false) {
           return dateInput.error = "不正な値です";
-        }else{
+        } else {
           dateInput.error = false;
           await setRecord(item.storeField.code, changeFormat);
         }
-        
+
       })
     }
-    // for (let space of spaceMap) {
-    //   let spaceElement = kintone.app.record.getSpaceElement(space);
-    //   const filteredFields = CONFIG.formatSetting.filter(item => item.space === space);
-    //   console.log('filteredFields', filteredFields);
-
-    //   let defaultDate = getAdjustedDate(filteredFields[0].initialValue);
-
-    //   //set default date to field
-    //   for (let field of filteredFields) {
-    //     record[field.storeField.code].value = defaultDate;
-    //   }
-
-
-    //   const dateInput = new Kuc.Text({
-    //     // label: 'Fruit',
-    //     // requiredIcon: true,
-    //     value: defaultDate,
-    //     // placeholder: 'Apple',
-    //     textAlign: 'left',
-    //     // error: 'Error occurred!',
-    //     className: 'options-class',
-    //     id: 'options-id',
-    //     visible: true,
-    //     disabled: false
-    //   });
-    //   $(dateInput).on('change', async (e) => {
-    //     console.log(e.target.value);
-    //     // if (!e.target.value) return;
-    //     for (const field of filteredFields) {
-    //       console.log(record[field.storeField.code]);
-    //       let changeFormat = await parseDate(e.target.value)
-    //       await setRecord(field.storeField.code, changeFormat);
-    //     }
-    //     // await setRecord(item.storeField.code, e.target.value);
-    //   })
-    //   console.log('spaceElement', spaceElement);
-    //   $(spaceElement).append(
-    //     $("<div>").addClass("control-gaia").append(
-    //       $("<div>").addClass("control-label-gaia").append($("<span>").addClass("control-label-text-gaia").text("Date")),
-    //       dateInput
-    //     )
-    //   )
-    // }
-
-    // for (const item of CONFIG.formatSetting) {
-    //   if (item.space == "-----") continue;
-    //   let spaceElement = kintone.app.record.getSpaceElement(item.space);
-    //   // kintone.app.record.setFieldShown(item.storeField.code, false);
-    //   // let defaultDate = item.initialValue == "" ? "" : item.initialValue == "1" ? getAdjustedDate(1) : item.initialValue == "-1" ? getAdjustedDate(-1) : item.initialValue == "0" ? getAdjustedDate(0) : "";
-    //   let defaultDate = "";
-    //   switch (item.initialValue) {
-    //     case "1":
-    //       defaultDate = getAdjustedDate(1);
-    //       break;
-
-    //     case "10":
-    //       defaultDate = getAdjustedDate(10);
-    //       break;
-
-    //     case "0":
-    //       defaultDate = getAdjustedDate(0);
-    //       break;
-
-    //     case "-1":
-    //       defaultDate = getAdjustedDate(-1);
-    //       break;
-
-    //     case "-10":
-    //       defaultDate = getAdjustedDate(-10);
-    //       break;
-
-    //     default:
-    //       defaultDate = "";
-    //       break;
-    //   }
-    //   record[item.storeField.code].value = defaultDate;
-    //   // const datePicker = new Kuc.Text({
-    //   //   // label: 'Fruit',
-    //   //   // requiredIcon: true,
-    //   //   value: defaultDate,
-    //   //   // placeholder: 'Apple',
-    //   //   textAlign: 'left',
-    //   //   // error: 'Error occurred!',
-    //   //   className: 'options-class',
-    //   //   id: 'options-id',
-    //   //   visible: true,
-    //   //   disabled: false
-    //   // });
-    //   // $(datePicker).on('change', async (e) => {
-    //   //   console.log(e.target.value);
-    //   //   // await setRecord(item.storeField.code, e.target.value);
-    //   // })
-    //   // console.log('spaceElement', spaceElement);
-    //   // $(spaceElement).append(
-    //   //   $("<div>").addClass("control-gaia").append(
-    //   //     $("<div>").addClass("control-label-gaia").append($("<span>").addClass("control-label-text-gaia").text(item.storeField.label)),
-    //   //     datePicker
-    //   //   )
-    //   // )
-
-    // }
 
     async function setRecord(fieldCode, value) {
       let rec = kintone.app.record.get();
-      console.log(rec);
       rec.record[fieldCode].value = value
       kintone.app.record.set(rec);
       return event;
@@ -441,15 +303,6 @@ jQuery.noConflict();
 
 
   kintone.events.on("app.record.detail.show", async (event) => {
-    console.log(CONFIG);
-    // Example usage:
-    // const testDate1 = new Date("2019-05-01");  // Example 1
-    // const testDate2 = new Date("2020-04-30");  // Example 2
-    // const testDate3 = new Date("2020-05-01");  // Example 3
-
-    // console.log(getJapaneseEra(testDate1)); // R1 05 01 => 2019-05-01
-    // console.log(getJapaneseEra(testDate2)); // R1 04 30 => 2020-04-30
-    // console.log(getJapaneseEra(testDate3)); // R2 05 01 => 2020-05-01
     const schemaPage = cybozu.data.page.SCHEMA_DATA;
     let record = event.record;
 
@@ -458,7 +311,6 @@ jQuery.noConflict();
       let field = getFieldData(schemaPage, item.storeField.code);
       if (item.space != "-----") {
         let spaceElement = kintone.app.record.getSpaceElement(item.space);
-        console.log(spaceElement);
         $(spaceElement).parent().remove();
       }
       // Create a Date object
@@ -468,7 +320,6 @@ jQuery.noConflict();
 
       // Get era symbol and custom year
       const { eraSymbol, customYear } = getJapaneseEra(date);
-      const referenceDate = new Date("2019-05-01");
 
       // Extract parts of the date
       const yearFull = date.getFullYear(); // 2024
@@ -514,19 +365,18 @@ jQuery.noConflict();
 
   kintone.events.on("app.record.index.show", async (event) => {
     const schemaPage = cybozu.data.page.SCHEMA_DATA;
-    let record = event.records;
-    console.log('record', record);
 
     for (const item of CONFIG.formatSetting) {
       let data = getFieldData(schemaPage, item.storeField.code);
-      console.log('data',data);
       let fields = $(`.value-${data.id}`);
 
       // Create a Date object
       for (const field of fields) {
         let formatDate;
         const dateValue = $(field).find("span").text();
+        if (!dateValue) continue;
         const date = new Date(dateValue);
+        date.setHours(7, 0, 0);
 
         // Get era symbol and custom year
         const { eraSymbol, customYear } = getJapaneseEra(date);
@@ -566,31 +416,12 @@ jQuery.noConflict();
             console.log("No matching format:", item.format);
             break;
         }
-        console.log('formatDate', formatDate);
+        // console.log('formatDate', formatDate);
         if (formatDate) $(field).find("span").text(formatDate);
       }
 
     }
-    $(document).ready(function () {
-      console.log("$('.contextbarBtn-gray.recordlist-cancel-button-gaia'):::", $('.contextbarBtn-gray.recordlist-cancel-button-gaia'));
-      $('.contextbarBtn-gray.recordlist-cancel-button-gaia').on('click', (e)=> {
-        console.log(e);
-        alert("aaaa")
-      })
-
-      let buttonEl = document.querySelectorAll(".fade-in")
-
-      console.log("buttonElbuttonElbuttonEl", buttonEl);
-    });
-
-    
-    
-
     return event;
   }
-);
-
-  kintone.events.on("app.record.index.edit.submit", async (event) => {
-    console.log('event', event);
-  })
+  );
 })(jQuery, Sweetalert2_10.noConflict(true), kintone.$PLUGIN_ID);
