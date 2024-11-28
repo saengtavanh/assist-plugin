@@ -306,7 +306,7 @@ jQuery.noConflict();
     let errors = {};
     for (let item of CONFIG.formatSetting) {
       if (item.space === "-----") continue;
-      // kintone.app.record.setFieldShown(item.storeField.code, false);
+      kintone.app.record.setFieldShown(item.storeField.code, false);
       let spaceElement = kintone.app.record.getSpaceElement(item.space);
       let defaultDate = getAdjustedDate(item.initialValue);
       if (event.type === "app.record.edit.show") defaultDate = record[item.storeField.code].value;
@@ -338,6 +338,7 @@ jQuery.noConflict();
         } else {
           if (errors[item.storeField.code]) delete errors[item.storeField.code]
           dateInput.error = false;
+          e.target.value = await getFormatDate(changeFormat, item.format);
           await setRecord(item.storeField.code, changeFormat);
         }
 
