@@ -284,9 +284,10 @@ jQuery.noConflict();
 
       //set default date to field
       record[item.storeField.code].value = defaultDate;
+      let defaultInputValue = await getFormatDate(defaultDate, item.format);
       const dateInput = new Kuc.Text({
         label: item.storeField.label,
-        value: await getFormatDate(defaultDate, item.format),
+        value: defaultInputValue !== false ? defaultInputValue : defaultDate,
         textAlign: 'left',
         className: 'options-class',
         id: 'options-id',
