@@ -1,17 +1,9 @@
 jQuery.noConflict();
 (async function ($, Swal10, PLUGIN_ID) {
   let CONFIG = kintone.plugin.app.getConfig(PLUGIN_ID).config;
-  // const JP_CALENDAR = [
-  //   ["1912-07-30", "T"],
-  //   ["1926-12-25", "S"],
-  //   ["1968-01-25", "M"],
-  //   ["1989-01-08", "H"],
-  //   ["2019-05-01", "R"],
-  // ]
 
   if (!CONFIG) return;
   CONFIG = JSON.parse(kintone.plugin.app.getConfig(PLUGIN_ID).config);
-  // console.log('CONFIG', CONFIG);
 
   function getAdjustedDate(offset) {
     if (offset == "") return "";
@@ -80,15 +72,6 @@ jQuery.noConflict();
   async function convertJapaneseEraToDate(eraInput) {
     const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
     let eraSymbol, customYear, month, day;
-
-    // // Clean and normalize the input
-    // eraInput = eraInput.replace(/\s+/g, '').toUpperCase(); // Remove spaces and normalize to uppercase
-
-    // // Extract the era symbol, custom year, month, and day
-    // const match = /^([A-Z])(\d{2})(\d{2})(\d{2})$/.exec(eraInput);
-    // if (!match) {
-    //   return { error: 'Invalid era input format' };
-    // }
     // Normalize the input: remove extra spaces and split into parts
     // Check for "eYY.MM.DD" format
     if (/^[A-Za-z]\d{2}\.\d{2}\.\d{2}$/.test(eraInput)) {
@@ -105,15 +88,6 @@ jQuery.noConflict();
     } else {
       return false; // Explicitly return false for invalid formats
     }
-
-    // const [, eraSymbol, customYearStr, monthStr, dayStr] = match;
-    // const customYear = parseInt(customYearStr, 10);
-    // const month = parseInt(monthStr, 10);
-    // const day = parseInt(dayStr, 10);
-    // const [eraSymbol, customYearStr, monthStr, dayStr] = parts;
-    // const customYear = parseInt(customYearStr, 10); // Parse as integer
-    // const month = parseInt(monthStr, 10); // Parse as integer
-    // const day = parseInt(dayStr, 10); // Parse as integer
     customYear = parseInt(customYear, 10); // Parse as integer
     month = parseInt(month, 10); // Parse as integer
     day = parseInt(day, 10); // Parse as integer
@@ -139,7 +113,6 @@ jQuery.noConflict();
     if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
       year++;
     }
-    // }
 
     // Validate the month and day
     if (month < 1 || month > 12 || day < 1 || day > 31) {
@@ -154,7 +127,6 @@ jQuery.noConflict();
 
   // Function to parse and convert various date formats to YYYY-MM-DD
   async function parseDate(input) {
-    console.log('input', input);
     if (!input) return getAdjustedDate(0);
     try {
       const currentYear = new Date().getFullYear();
@@ -257,7 +229,6 @@ jQuery.noConflict();
     let jpFormatDate;
 
     // Get era symbol and custom year
-    // const { eraSymbol, customYear } = getJapaneseEra(date);
 
     // Extract parts of the date
     const yearFull = date.getFullYear(); // 2024
@@ -285,13 +256,11 @@ jQuery.noConflict();
         break;
       case "eYY.MM.DD":
         jpFormatDate = getJapaneseEra(date);
-        // console.log('jpFormatDate',jpFormatDate);
         if (!jpFormatDate) return false;
         formatDate = `${jpFormatDate.eraSymbol}${jpFormatDate.customYear}.${month}.${day}`;
         break;
       case "e_YY_MM_DD":
         jpFormatDate = getJapaneseEra(date);
-        // console.log('jpFormatDate',jpFormatDate);
         if (!jpFormatDate) return false;
         formatDate = `${jpFormatDate.eraSymbol} ${jpFormatDate.customYear} ${month} ${day}`;
         break;
@@ -304,12 +273,11 @@ jQuery.noConflict();
   }
 
   kintone.events.on(["app.record.edit.show", "app.record.create.show"], async (event) => {
-    console.log(event);
     let record = event.record;
     let errors = {};
     for (let item of CONFIG.formatSetting) {
       if (item.space === "-----") continue;
-      // kintone.app.record.setFieldShown(item.storeField.code, false);
+      kintone.app.record.setFieldShown(item.storeField.code, false);
       let spaceElement = kintone.app.record.getSpaceElement(item.space);
       let defaultDate = getAdjustedDate(item.initialValue);
       if (event.type === "app.record.edit.show") defaultDate = record[item.storeField.code].value;
@@ -435,8 +403,6 @@ jQuery.noConflict();
       // Create a Date object
       for (const field of fields) {
         const dateValue = $(field).find("span").text();
-        // if (!dateValue) continue;
-
         if (item.format === "-----") continue;
         let formatDate = await getFormatDate(dateValue, item.format);
         if (formatDate === false) {
