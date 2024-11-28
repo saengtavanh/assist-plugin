@@ -5,3 +5,10 @@
   width: 101px !important;
   /* height: 71px !important; */
 }
+.custom-confirm-button {
+  color: #f7f9fa !important;
+}
+
+.custom-cancel-button {
+  color:  #3498db!important;
+}

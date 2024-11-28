@@ -28,6 +28,11 @@ jQuery.noConflict();
 
   // Function to determine the Japanese era symbol and custom year
   function getJapaneseEra(date) {
+    if (window.BoK) {
+      if (!window.BoK.Constant.JpCalenderBase) return false;
+    } else {
+      return false;
+    }
     const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
 
     let eraSymbol = "";
@@ -85,23 +90,20 @@ jQuery.noConflict();
     //   return { error: 'Invalid era input format' };
     // }
     // Normalize the input: remove extra spaces and split into parts
-    if (!eraInput.includes(' ')) {
+    // Check for "eYY.MM.DD" format
+    if (/^[A-Za-z]\d{2}\.\d{2}\.\d{2}$/.test(eraInput)) {
+      const match = /^([A-Za-z])(\d{2})\.(\d{2})\.(\d{2})$/.exec(eraInput);
+      [, eraSymbol, customYear, month, day] = match;
+    } else if (/^[A-Za-z]\d{2}\d{2}\d{2}$/.test(eraInput)) {
       // Handle compact format: eYYMMDD
       const match = /^([A-Za-z])(\d{2})(\d{2})(\d{2})$/.exec(eraInput);
-      if (!match) {
-        return false;
-      }
       [, eraSymbol, customYear, month, day] = match;
-    } else {
-      // Normalize spaced input: e YY MM DD or e Y MM D
-      eraInput = eraInput.replace(/\s+/g, ' ').trim(); // Normalize spaces
+    } else if (/^[A-Za-z] \d{1,2} \d{1,2} \d{1,2}$/.test(eraInput)) {
+      // Handle spaced format: e YY MM DD or e Y MM D
       const parts = eraInput.split(' ');
-
-      if (parts.length !== 4) {
-        return false; // Ensure it has exactly 4 parts
-      }
-
       [eraSymbol, customYear, month, day] = parts;
+    } else {
+      return false; // Explicitly return false for invalid formats
     }
 
     // const [, eraSymbol, customYearStr, monthStr, dayStr] = match;
@@ -152,6 +154,7 @@ jQuery.noConflict();
 
   // Function to parse and convert various date formats to YYYY-MM-DD
   async function parseDate(input) {
+    console.log('input', input);
     if (!input) return getAdjustedDate(0);
     try {
       const currentYear = new Date().getFullYear();
@@ -211,6 +214,18 @@ jQuery.noConflict();
         year = parseInt(y, 10);
         month = parseInt(m, 10);
         day = parseInt(d, 10);
+      } else if (/^\d{4}\/\d{2}\/\d{2}$/.test(input)) {
+        // YYYY/MM/DD
+        const [y, m, d] = input.split("/");
+        year = parseInt(y, 10);
+        month = parseInt(m, 10);
+        day = parseInt(d, 10);
+      } else if (/^\d{4}\.\d{2}\.\d{2}$/.test(input)) {
+        // YYYY.MM.DD
+        const [y, m, d] = input.split(".");
+        year = parseInt(y, 10);
+        month = parseInt(m, 10);
+        day = parseInt(d, 10);
       } else {
         //eYYMMDD
         //e YY MM DD
@@ -233,11 +248,68 @@ jQuery.noConflict();
     }
   }
 
+  async function getFormatDate(dateValue, format) {
+    if (!dateValue) return "";
+    if (format === "-----") return dateValue;
+    const date = new Date(dateValue);
+    date.setHours(7, 0, 0);
+    let formatDate;
+    let jpFormatDate;
+
+    // Get era symbol and custom year
+    // const { eraSymbol, customYear } = getJapaneseEra(date);
+
+    // Extract parts of the date
+    const yearFull = date.getFullYear(); // 2024
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 10
+    const day = String(date.getDate()).padStart(2, '0'); // 30
+    const yearShort = String(yearFull).slice(2); // 24
+
+    switch (format) {
+      case "YYYY-MM-DD":
+        formatDate = `${yearFull}-${month}-${day}`;
+        break;
+
+      case "YYYY/MM/DD":
+        formatDate = `${yearFull}/${month}/${day}`;
+        break;
+      case "YYYY.MM.DD":
+        formatDate = `${yearFull}.${month}.${day}`;
+        break;
+
+      case "YY/MM/DD":
+        formatDate = `${yearShort}/${month}/${day}`;
+        break;
+      case "YY.MM.DD":
+        formatDate = `${yearShort}.${month}.${day}`;
+        break;
+      case "eYY.MM.DD":
+        jpFormatDate = getJapaneseEra(date);
+        // console.log('jpFormatDate',jpFormatDate);
+        if (!jpFormatDate) return false;
+        formatDate = `${jpFormatDate.eraSymbol}${jpFormatDate.customYear}.${month}.${day}`;
+        break;
+      case "e_YY_MM_DD":
+        jpFormatDate = getJapaneseEra(date);
+        // console.log('jpFormatDate',jpFormatDate);
+        if (!jpFormatDate) return false;
+        formatDate = `${jpFormatDate.eraSymbol} ${jpFormatDate.customYear} ${month} ${day}`;
+        break;
+
+      default:
+        formatDate = "";
+        break;
+    }
+    return formatDate;
+  }
+
   kintone.events.on(["app.record.edit.show", "app.record.create.show"], async (event) => {
+    console.log(event);
     let record = event.record;
+    let errors = {};
     for (let item of CONFIG.formatSetting) {
       if (item.space === "-----") continue;
-      kintone.app.record.setFieldShown(item.storeField.code, false);
+      // kintone.app.record.setFieldShown(item.storeField.code, false);
       let spaceElement = kintone.app.record.getSpaceElement(item.space);
       let defaultDate = getAdjustedDate(item.initialValue);
       if (event.type === "app.record.edit.show") defaultDate = record[item.storeField.code].value;
@@ -246,7 +318,7 @@ jQuery.noConflict();
       record[item.storeField.code].value = defaultDate;
       const dateInput = new Kuc.Text({
         label: item.storeField.label,
-        value: defaultDate,
+        value: await getFormatDate(defaultDate, item.format),
         textAlign: 'left',
         className: 'options-class',
         id: 'options-id',
@@ -259,11 +331,14 @@ jQuery.noConflict();
           dateInput
         )
       )
+      
       $(dateInput).on('change', async (e) => {
-        let changeFormat = await parseDate(e.target.value);
+        let changeFormat = await parseDate(e.target.value.trim());
         if (changeFormat === false) {
-          return dateInput.error = "不正な値です";
+          dateInput.error = "不正な値です";
+          errors[item.storeField.code] = "不正な値です";
         } else {
+          if (errors[item.storeField.code]) delete errors[item.storeField.code]
           dateInput.error = false;
           await setRecord(item.storeField.code, changeFormat);
         }
@@ -275,12 +350,17 @@ jQuery.noConflict();
       let rec = kintone.app.record.get();
       rec.record[fieldCode].value = value
       kintone.app.record.set(rec);
-      return event;
     }
 
+    kintone.events.on(["app.record.edit.submit", "app.record.create.submit"], async (event) => {
+      if (Object.keys(errors).length > 0) event.error = "不正な値です"
+      
+      return event;
+    });
     return event;
   }
   );
+  
 
   function getFieldData(data, fieldCode) {
     // Search in fieldList
@@ -305,9 +385,10 @@ jQuery.noConflict();
   kintone.events.on("app.record.detail.show", async (event) => {
     const schemaPage = cybozu.data.page.SCHEMA_DATA;
     let record = event.record;
+    let errorMessage;
 
     for (const item of CONFIG.formatSetting) {
-      let formatDate;
+
       let field = getFieldData(schemaPage, item.storeField.code);
       if (item.space != "-----") {
         let spaceElement = kintone.app.record.getSpaceElement(item.space);
@@ -315,49 +396,29 @@ jQuery.noConflict();
       }
       // Create a Date object
       const dateValue = record[item.storeField.code].value;
-      if (!dateValue) continue;
-      const date = new Date(dateValue);
-
-      // Get era symbol and custom year
-      const { eraSymbol, customYear } = getJapaneseEra(date);
-
-      // Extract parts of the date
-      const yearFull = date.getFullYear(); // 2024
-      const month = String(date.getMonth() + 1).padStart(2, '0'); // 10
-      const day = String(date.getDate()).padStart(2, '0'); // 30
-      const yearShort = String(yearFull).slice(2); // 24
-
-      switch (item.format) {
-        case "YYYY-MM-DD":
-          formatDate = `${yearFull}-${month}-${day}`;
-          break;
-
-        case "YYYY/MM/DD":
-          formatDate = `${yearFull}/${month}/${day}`;
-          break;
-        case "YYYY.MM.DD":
-          formatDate = `${yearFull}.${month}.${day}`;
-          break;
-
-        case "YY/MM/DD":
-          formatDate = `${yearShort}/${month}/${day}`;
-          break;
-        case "YY.MM.DD":
-          formatDate = `${yearShort}.${month}.${day}`;
-          break;
-        case "eYY.MM.DD":
-          formatDate = `${eraSymbol}${customYear}.${month}.${day}`;
-          break;
-        case "e_YY_MM_DD":
-          formatDate = `${eraSymbol} ${customYear} ${month} ${day}`;
-          break;
-
-        default:
-          break;
+      if (item.format === "-----") continue;
+      let formatDate = await getFormatDate(dateValue, item.format);
+      if (formatDate === false) {
+        errorMessage = "「定数管理プラグインを適用してください」";
+      } else {
+        $(`.value-${field.id}`).find("span").text(formatDate);
       }
-      if (formatDate) $(`.value-${field.id}`).find("span").text(formatDate);
 
     }
+    if (errorMessage) Swal10.fire({
+      position: "center",
+      icon: "error",
+      text: errorMessage,
+      confirmButtonColor: "#3498db",
+      showCancelButton: false,
+      cancelButtonColor: "#f7f9fa",
+      confirmButtonText: "OK",
+      cancelButtonText: "キャンセル",
+      customClass: {
+        confirmButton: 'custom-confirm-button',
+        cancelButton: 'custom-cancel-button'
+      }
+    })
 
     return event;
   }
@@ -365,6 +426,7 @@ jQuery.noConflict();
 
   kintone.events.on("app.record.index.show", async (event) => {
     const schemaPage = cybozu.data.page.SCHEMA_DATA;
+    let errorMessage;
 
     for (const item of CONFIG.formatSetting) {
       let data = getFieldData(schemaPage, item.storeField.code);
@@ -372,55 +434,30 @@ jQuery.noConflict();
 
       // Create a Date object
       for (const field of fields) {
-        let formatDate;
         const dateValue = $(field).find("span").text();
-        if (!dateValue) continue;
-        const date = new Date(dateValue);
-        date.setHours(7, 0, 0);
+        // if (!dateValue) continue;
 
-        // Get era symbol and custom year
-        const { eraSymbol, customYear } = getJapaneseEra(date);
-
-        // Extract parts of the date
-        const yearFull = date.getFullYear(); // 2024
-        const month = String(date.getMonth() + 1).padStart(2, '0'); // 10
-        const day = String(date.getDate()).padStart(2, '0'); // 30
-        const yearShort = String(yearFull).slice(2); // 24
-
-        switch (String(item.format)) {
-          case "YYYY-MM-DD":
-            formatDate = `${yearFull}-${month}-${day}`;
-            break;
-
-          case "YYYY/MM/DD":
-            formatDate = `${yearFull}/${month}/${day}`;
-            break;
-          case "YYYY.MM.DD":
-            formatDate = `${yearFull}.${month}.${day}`;
-            break;
-
-          case "YY/MM/DD":
-            formatDate = `${yearShort}/${month}/${day}`;
-            break;
-          case "YY.MM.DD":
-            formatDate = `${yearShort}.${month}.${day}`;
-            break;
-          case "eYY.MM.DD":
-            formatDate = `${eraSymbol}${customYear}.${month}.${day}`;
-            break;
-          case "e_YY_MM_DD":
-            formatDate = `${eraSymbol} ${customYear} ${month} ${day}`;
-            break;
-
-          default:
-            console.log("No matching format:", item.format);
-            break;
+        if (item.format === "-----") continue;
+        let formatDate = await getFormatDate(dateValue, item.format);
+        if (formatDate === false) {
+          errorMessage = "「定数管理プラグインを適用してください」";
+        } else {
+          $(field).find("span").text(formatDate);
         }
-        // console.log('formatDate', formatDate);
-        if (formatDate) $(field).find("span").text(formatDate);
       }
 
     }
+    if (errorMessage) return Swal10.fire({
+      position: "center",
+      icon: "error",
+      text: errorMessage,
+      confirmButtonColor: "#3498db",
+      showCancelButton: false,
+      confirmButtonText: "OK",
+      customClass: {
+        confirmButton: 'custom-confirm-button',
+      }
+    })
     return event;
   }
   );
