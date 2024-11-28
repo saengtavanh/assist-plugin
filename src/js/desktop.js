@@ -70,6 +70,35 @@ jQuery.noConflict();
   }
 
   async function convertJapaneseEraToDate(eraInput) {
+    if (window.BoK) {
+      if (!window.BoK.Constant.JpCalenderBase) {
+        Swal10.fire({
+          position: "center",
+          icon: "error",
+          text: "「定数管理プラグインを適用してください」",
+          confirmButtonColor: "#3498db",
+          showCancelButton: false,
+          confirmButtonText: "OK",
+          customClass: {
+            confirmButton: 'custom-confirm-button'
+          }
+        })
+        return false;
+      }
+    } else {
+      Swal10.fire({
+        position: "center",
+        icon: "error",
+        text: "「定数管理プラグインを適用してください」",
+        confirmButtonColor: "#3498db",
+        showCancelButton: false,
+        confirmButtonText: "OK",
+        customClass: {
+          confirmButton: 'custom-confirm-button'
+        }
+      })
+      return false;
+    }
     const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
     let eraSymbol, customYear, month, day;
     // Normalize the input: remove extra spaces and split into parts
@@ -156,7 +185,7 @@ jQuery.noConflict();
         year = currentYear;
         month = parseInt(input.slice(0, 2), 10);
         day = parseInt(input.slice(2, 4), 10);
-      } else if (/^\d{2}\/\d{1,2}$/.test(input)) {
+      } else if (/^\d{1,2}\/\d{1,2}$/.test(input)) {
         // MM/DD or MM/D
         const [m, d] = input.split("/");
         year = currentYear;
@@ -277,7 +306,7 @@ jQuery.noConflict();
     let errors = {};
     for (let item of CONFIG.formatSetting) {
       if (item.space === "-----") continue;
-      kintone.app.record.setFieldShown(item.storeField.code, false);
+      // kintone.app.record.setFieldShown(item.storeField.code, false);
       let spaceElement = kintone.app.record.getSpaceElement(item.space);
       let defaultDate = getAdjustedDate(item.initialValue);
       if (event.type === "app.record.edit.show") defaultDate = record[item.storeField.code].value;
@@ -380,12 +409,9 @@ jQuery.noConflict();
       text: errorMessage,
       confirmButtonColor: "#3498db",
       showCancelButton: false,
-      cancelButtonColor: "#f7f9fa",
       confirmButtonText: "OK",
-      cancelButtonText: "キャンセル",
       customClass: {
-        confirmButton: 'custom-confirm-button',
-        cancelButton: 'custom-cancel-button'
+        confirmButton: 'custom-confirm-button'
       }
     })
 

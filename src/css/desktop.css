@@ -12,3 +12,7 @@
 .custom-cancel-button {
   color:  #3498db!important;
 }
+
+.swal2-content {
+  padding: 0px !important;
+}

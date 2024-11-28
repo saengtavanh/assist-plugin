@@ -47,7 +47,6 @@ jQuery.noConflict();
 	let FIELDFROMAPP = Object.values(GETFIELD.properties).sort((a, b) => {
 		return a.code.localeCompare(b.code);
 	});
-	console.log('FIELDFROMAPP', FIELDFROMAPP);
 
 	//function set value to config setting.
 	async function setValueConfig() {
@@ -88,7 +87,6 @@ jQuery.noConflict();
 	}
 
 	async function setValueToTable(getConfig) {
-		console.log('getConfig', getConfig);
 		getConfig.formatSetting.forEach((item) => {
 			let rowForClone = $("#kintoneplugin-setting-tspace tr:first-child").clone(true).removeAttr("hidden");
 			$("#kintoneplugin-setting-tspace tr:last-child").after(rowForClone);
@@ -252,7 +250,6 @@ jQuery.noConflict();
 		});
 
 		$('input#initial_value').on('input', function () {
-			console.log($(this).val());
 			$(this).val($(this).val().replace(/[^0-9-]/g, ''));
 		})
 
