@@ -323,26 +323,65 @@ jQuery.noConflict();
         visible: true,
         disabled: false
       });
+      // const inputContainer = $('<div></div>').addClass('control-gaia control-date-field-gaia');
+      const inputContainer = $('<div></div>').addClass('control-gaia control-date-field-gaia');
+      const label = $('<div></div>').addClass('control-label-gaia').append(
+        $('<label></label>').addClass('control-label-text-gaia').text(item.storeField.label)
+      );
+      const inputGroup = $('<div></div>').addClass('control-value-gaia');
+      const inputError = $('<div>').addClass('input-error-cybozu').append(
+        $('<span></span>').text("不正な値です")
+      ).css('width', '65px').hide()
+      const input = $('<div></div>').addClass('input-date-cybozu').append(
+        $('<input>').attr('type', 'text').addClass('input-date-text-cybozu').attr('value', defaultInputValue).on('change', async (e) => {
+          let changeFormat = await parseDate(e.target.value.trim());
+          if (changeFormat === false) {
+            // dateInput.error = "不正な値です";
+            $(inputError).show()
+            errors[item.storeField.code] = "不正な値です";
+          } else {
+            if (errors[item.storeField.code]) delete errors[item.storeField.code]
+            // dateInput.error = false;
+            $(inputError).hide()
+            e.target.value = await getFormatDate(changeFormat, item.format);
+            await setRecord(item.storeField.code, changeFormat);
+          }
+  
+        })
+      );
+      
+      $(inputGroup).append(
+        input,
+        inputError
+      );
+      $(inputContainer).append(
+        label,
+        inputGroup
+      )
+
 
       $(spaceElement).append(
-        $("<div>").addClass("control-gaia").append(
-          dateInput
-        )
+          inputContainer
       )
+      // $(spaceElement).append(
+      //   $("<div>").addClass("control-gaia").append(
+      //     dateInput
+      //   )
+      // )
       
-      $(dateInput).on('change', async (e) => {
-        let changeFormat = await parseDate(e.target.value.trim());
-        if (changeFormat === false) {
-          dateInput.error = "不正な値です";
-          errors[item.storeField.code] = "不正な値です";
-        } else {
-          if (errors[item.storeField.code]) delete errors[item.storeField.code]
-          dateInput.error = false;
-          e.target.value = await getFormatDate(changeFormat, item.format);
-          await setRecord(item.storeField.code, changeFormat);
-        }
+      // $(dateInput).on('change', async (e) => {
+      //   let changeFormat = await parseDate(e.target.value.trim());
+      //   if (changeFormat === false) {
+      //     dateInput.error = "不正な値です";
+      //     errors[item.storeField.code] = "不正な値です";
+      //   } else {
+      //     if (errors[item.storeField.code]) delete errors[item.storeField.code]
+      //     dateInput.error = false;
+      //     e.target.value = await getFormatDate(changeFormat, item.format);
+      //     await setRecord(item.storeField.code, changeFormat);
+      //   }
 
-      })
+      // })
     }
 
     async function setRecord(fieldCode, value) {
