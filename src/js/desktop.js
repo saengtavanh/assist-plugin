@@ -44,9 +44,9 @@ jQuery.noConflict();
         eraStartYear = date.getFullYear() - startDate.getFullYear(); // Difference in years
 
         // If the given date is before the start of the era, reset customYear to 1
-        if (date.getMonth() < startDate.getMonth() || (date.getMonth() === startDate.getMonth() && date.getDate() < startDate.getDate())) {
-          eraStartYear -= 1;
-        }
+        // if (date.getMonth() < startDate.getMonth() || (date.getMonth() === startDate.getMonth() && date.getDate() < startDate.getDate())) {
+        //   eraStartYear -= 1;
+        // }
         eraStartYear += 1;  // Start year should be 1 for the first year of the era
         break;
       }
@@ -139,9 +139,9 @@ jQuery.noConflict();
     const eraStartMonth = eraStartDate.getMonth() + 1; // Month is 0-based
     const eraStartDay = eraStartDate.getDate();
     // If the input month/day falls before the era's start date, it must belong to the next Gregorian year
-    if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
-      year++;
-    }
+    // if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
+    //   year++;
+    // }
 
     // Validate the month and day
     if (month < 1 || month > 12 || day < 1 || day > 31) {
