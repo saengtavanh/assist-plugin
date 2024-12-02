@@ -25,7 +25,8 @@ jQuery.noConflict();
     } else {
       return false;
     }
-    const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
+    const JP_CALENDAR = (window.BoK.Constant.JpCalenderBase).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+    // console.log('JP_CALENDAR', JP_CALENDAR);
 
     let eraSymbol = "";
     let eraStartYear = 0;
@@ -99,7 +100,7 @@ jQuery.noConflict();
       })
       return false;
     }
-    const JP_CALENDAR = window.BoK.Constant.JpCalenderBase;
+    const JP_CALENDAR = (window.BoK.Constant.JpCalenderBase).sort((a, b) => new Date(a[0]) - new Date(b[0]));
     let eraSymbol, customYear, month, day;
     // Normalize the input: remove extra spaces and split into parts
     // Check for "eYY.MM.DD" format
