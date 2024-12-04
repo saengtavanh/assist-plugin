@@ -206,14 +206,6 @@ jQuery.noConflict();
 				}
 			}
 
-			// if (format.val() == "-----") {
-			// 	errorMessage += `<p>Please select Display format on row: ${index + 1}</p>`;
-			// 	$(format).parent().addClass('validation-error');
-			// 	hasError = true;
-			// } else {
-			// 	$(format).parent().removeClass('validation-error');
-			// }
-
 		}
 		if (typeError) errorMessage += typeError;
 		if (spaceError) errorMessage += spaceError;
@@ -390,7 +382,6 @@ jQuery.noConflict();
 
 		// function check structure and data import
 		async function compareConfigStructures(dataImport) {
-			let errorTexts = [];
 			let configStructure = {
 				formatSetting: [
 					{

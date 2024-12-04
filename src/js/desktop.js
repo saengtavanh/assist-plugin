@@ -26,9 +26,6 @@ jQuery.noConflict();
       return false;
     }
     const JP_CALENDAR = (window.BoK.Constant.JpCalenderBase).sort((a, b) => new Date(a[0]) - new Date(b[0]));
-    // date.setHours(7, 0, 0);
-    // console.log('date', date);
-    // console.log('JP_CALENDAR', JP_CALENDAR);
 
     let eraSymbol = "";
     let eraStartYear = 0;
@@ -39,33 +36,17 @@ jQuery.noConflict();
       const startDateStr = JP_CALENDAR[i][0]; // The start date of the era
       const symbol = JP_CALENDAR[i][2];      // The era symbol (e.g., "R")
       const startDate = new Date(startDateStr); // The date object for the start date
-      // console.log('startDate', startDate);
+      console.log('date', date);
+      console.log('startdate', startDate);
 
       // If the given date is on or after this era start date
       if (date >= startDate) {
         eraSymbol = symbol;
         eraStartDate = startDate;
         eraStartYear = date.getFullYear() - startDate.getFullYear(); // Difference in years
-
-        // If the given date is before the start of the era, reset customYear to 1
-        // if (date.getMonth() < startDate.getMonth() || (date.getMonth() === startDate.getMonth() && date.getDate() < startDate.getDate())) {
-        //   eraStartYear -= 1;
-        // }
         eraStartYear += 1;  // Start year should be 1 for the first year of the era
         break;
       }
-      // if ((date.getFullYear() >= startDate.getFullYear()) && (date.getMonth() >= startDate.getMonth()) && (date.getDate() >= startDate.getDate())) {
-      //   eraSymbol = symbol;
-      //   eraStartDate = startDate;
-      //   eraStartYear = date.getFullYear() - startDate.getFullYear(); // Difference in years
-
-      //   // If the given date is before the start of the era, reset customYear to 1
-      //   // if (date.getMonth() < startDate.getMonth() || (date.getMonth() === startDate.getMonth() && date.getDate() < startDate.getDate())) {
-      //   //   eraStartYear -= 1;
-      //   // }
-      //   eraStartYear += 1;  // Start year should be 1 for the first year of the era
-      //   break;
-      // }
     }
 
     if (!eraSymbol) {
@@ -152,13 +133,6 @@ jQuery.noConflict();
     // Determine the Gregorian year
     let year = eraStartDate.getFullYear() + customYear - 1;
 
-    const eraStartMonth = eraStartDate.getMonth() + 1; // Month is 0-based
-    const eraStartDay = eraStartDate.getDate();
-    // If the input month/day falls before the era's start date, it must belong to the next Gregorian year
-    // if (month < eraStartMonth || (month === eraStartMonth && day < eraStartDay)) {
-    //   year++;
-    // }
-
     // Validate the month and day
     if (month < 1 || month > 12 || day < 1 || day > 31) {
       return false;
@@ -175,7 +149,6 @@ jQuery.noConflict();
     if (!input) return getAdjustedDate(0);
     try {
       const currentYear = new Date().getFullYear();
-
       let year, month, day;
 
       // Helper function to pad single-digit numbers with leading zeros
@@ -252,7 +225,6 @@ jQuery.noConflict();
         year = parseInt(revert.year, 10);
         month = parseInt(revert.month, 10);
         day = parseInt(revert.day, 10);
-        // throw new Error(`Unrecognized date format: ${input}`);
       }
       // Validate the extracted date
       if (!isValidDate(year, month, day)) {
@@ -274,7 +246,6 @@ jQuery.noConflict();
     let jpFormatDate;
 
     // Get era symbol and custom year
-
     // Extract parts of the date
     const yearFull = date.getFullYear(); // 2024
     const month = String(date.getMonth() + 1).padStart(2, '0'); // 10
@@ -379,25 +350,6 @@ jQuery.noConflict();
       $(spaceElement).append(
           inputContainer
       )
-      // $(spaceElement).append(
-      //   $("<div>").addClass("control-gaia").append(
-      //     dateInput
-      //   )
-      // )
-      
-      // $(dateInput).on('change', async (e) => {
-      //   let changeFormat = await parseDate(e.target.value.trim());
-      //   if (changeFormat === false) {
-      //     dateInput.error = "不正な値です";
-      //     errors[item.storeField.code] = "不正な値です";
-      //   } else {
-      //     if (errors[item.storeField.code]) delete errors[item.storeField.code]
-      //     dateInput.error = false;
-      //     e.target.value = await getFormatDate(changeFormat, item.format);
-      //     await setRecord(item.storeField.code, changeFormat);
-      //   }
-
-      // })
     }
 
     async function setRecord(fieldCode, value) {
