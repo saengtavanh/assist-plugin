@@ -26,6 +26,8 @@ jQuery.noConflict();
       return false;
     }
     const JP_CALENDAR = (window.BoK.Constant.JpCalenderBase).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+    // date.setHours(7, 0, 0);
+    // console.log('date', date);
     // console.log('JP_CALENDAR', JP_CALENDAR);
 
     let eraSymbol = "";
@@ -37,6 +39,7 @@ jQuery.noConflict();
       const startDateStr = JP_CALENDAR[i][0]; // The start date of the era
       const symbol = JP_CALENDAR[i][2];      // The era symbol (e.g., "R")
       const startDate = new Date(startDateStr); // The date object for the start date
+      // console.log('startDate', startDate);
 
       // If the given date is on or after this era start date
       if (date >= startDate) {
@@ -51,6 +54,18 @@ jQuery.noConflict();
         eraStartYear += 1;  // Start year should be 1 for the first year of the era
         break;
       }
+      // if ((date.getFullYear() >= startDate.getFullYear()) && (date.getMonth() >= startDate.getMonth()) && (date.getDate() >= startDate.getDate())) {
+      //   eraSymbol = symbol;
+      //   eraStartDate = startDate;
+      //   eraStartYear = date.getFullYear() - startDate.getFullYear(); // Difference in years
+
+      //   // If the given date is before the start of the era, reset customYear to 1
+      //   // if (date.getMonth() < startDate.getMonth() || (date.getMonth() === startDate.getMonth() && date.getDate() < startDate.getDate())) {
+      //   //   eraStartYear -= 1;
+      //   // }
+      //   eraStartYear += 1;  // Start year should be 1 for the first year of the era
+      //   break;
+      // }
     }
 
     if (!eraSymbol) {
@@ -254,7 +269,7 @@ jQuery.noConflict();
     if (!dateValue) return "";
     if (format === "-----") return dateValue;
     const date = new Date(dateValue);
-    date.setHours(7, 0, 0);
+    // date.setHours(9, 0, 0);
     let formatDate;
     let jpFormatDate;
 
